@@ -1,56 +1,53 @@
+#!/bin/bash
 
-download_new(){
-    #Checks if item is already downloaded
-    #If not downloads and add entry to registry 
-    ytdlp --flat-playlist "playlist_link">tempregistry.txt
-    for row in $(cat registry.txt);
-    do
-        if grep -q "$row" tempregistry.txt;
-        then
-            echo "Found $row keeping it "
-        else
-            echo "Not found $row downloading it"
-            yt-dlp --geo-bypass  --download-archive registry.txt --downloader aria2c -path D/VIDEO/YTarchive/$3 --format "bv*+ba/b"  $row 
-            $row >> registry.txt
-        fi
-    done
+download(){
+    read playlist_link
+    yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  playlist_link
 }
-
-check_all(){
-    #Parse/scrapes given playlist for all item if not present in download folder adds an entry to the registry and asks if download is allowed
-    #If yes downloads and add a row to registry
-    #If not add a row to registry and mark as "excluded"
-    #If after -c item from the registry are missing from online parse call -dm  ,
-    if [ -f registry.txt ]; then #check if registry exists
-        echo "Registry found"
-    else
-        echo "Registry not found"
-        touch registry.txt #create registry
+log(){
+    #logs the names of downloaded files to a log file
+    echo "Enter the file name:"
+    read logfile
+    if [ -f $logfile ] ; then #check if registry exists
+        echo "Log found"
+    else 
+        echo "file not found creating file"
+        touch $logfile #create registry
     fi
-    ytdlp --flat-playlist "playlist_link">tempregistry.txt
-    for row in $(cat tempregistry.txt);
+    echo "logging started"
+    for filename in *.webm; 
     do
-        if grep -q "$row" registry.txt;
-        then
-            echo "Found $row all is good ";
+        if [ -f $filename in $logfile]; then
+
+            echo "$filename already logged"
         else
-            echo "Not found $row marking as offline_only";
-            $row >> missingregistry.txt;
+            echo "logging $filename"
+            echo "$filename" >> $logfile
         fi
     done
-    mark_missing()
+    echo "logging finished"
 }
-    
-mark_missing(){
-    #change name of said  files to have "offline_only" at the end of them and had a red colored cell on registry
-    for row in $(cat missingregistry.txt);
-    do 
-        sed 's/# $row/$row offline_only/' registry.txt;
-        
-    done   
-}
-
-change_dir(){
-    #Dire arg given next to it to set the diff directory and then launch -c to check the state of the dirt and possible fils already being here 
-}
-
+main(){
+    echo "1) Download"
+    echo "2) Log"
+    echo "3) #Check"
+    echo "4) #Change Directory"
+    echo "5) #Exit"
+    read -n 1 ans1
+    case $ans1 in
+    1)
+        download ;;
+    2)
+        log ;;
+    3)
+        check ;;
+    4)
+        change_dir ;;
+    5)
+        exit ;;
+    *)
+        echo "Invalid option"
+        main ;;
+    esac
+   }
+main
