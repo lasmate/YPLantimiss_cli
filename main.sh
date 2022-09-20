@@ -90,20 +90,20 @@ main(){
     while getopts "d:dn:c:dc:mm:dir:" opt; do
         case $opt in
             d)
-                download_all $OPTARG
+                download_all $OPTARG # done in test.sh
                 ;;
             dn)
-                download_new $OPTARG
+                download_new $OPTARG # partially done in test.sh, mix of download/log/check
                 ;;
             c)
-                check_all $OPTARG
+                check_all $OPTARG #done in test.sh renamed to log
                 ;;
             dc)
-                download_all $OPTARG
+                download_all $OPTARG # partially done , must add a force redownload and force relog option
                 check_all $OPTARG
                 ;;
             mm)
-                mark_missing $OPTARG
+                mark_missing $OPTARG #done in test.sh renamed check
                 ;;
             dir)
                 change_dir $OPTARG
