@@ -87,36 +87,33 @@ main(){
     #-dc(ReDownload all and check all)
     #-mm(mark_missing)
     #-dir(change Download and check directory)
-    read -n 1 ans
-    echo " "
-    case $ans in
-        d)
-            download_all $@
-            ;;
-        dn)
-            download_new $@
-            ;;
-        c)
-            check_all $@
-            ;;
-        dc)
-            download_all $@
-            check_all $@
-            ;;
-        mm)
-            mark_missing $@
-            ;;  
-        dir)
-            change_dir $@
-            ;;  
-        *)
-            echo "Unknown option"
-            echo "Usage: $0 -d(download all) -dn(download new) -c(check all) -dc(redownload all and check all) -mm(mark missing) -dir(change directory)"
-            exit 1
-            ;;
-    esac
-        #ytdlp 
-
-
+    while getopts "d:dn:c:dc:mm:dir:" opt; do
+        case $opt in
+            d)
+                download_all $OPTARG
+                ;;
+            dn)
+                download_new $OPTARG
+                ;;
+            c)
+                check_all $OPTARG
+                ;;
+            dc)
+                download_all $OPTARG
+                check_all $OPTARG
+                ;;
+            mm)
+                mark_missing $OPTARG
+                ;;
+            dir)
+                change_dir $OPTARG
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                echo "Usage: $0 -d(download all) -dn(download new) -c(check all) -dc(redownload all and check all) -mm(mark missing) -dir(change directory)"
+                ;;
+        esac
+    done 
+    #ytdlp 
 }
 main

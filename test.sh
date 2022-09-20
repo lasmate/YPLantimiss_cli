@@ -43,16 +43,14 @@ check(){
         if yt-dlp --geo-bypass --break-on-existing --downloader aria2c --format "bv*+ba/b" $line; then #check if file is still available online
             echo "$line is online" #if file is online skip
         else
-            echo "$line is offline" #if file is offline rename file
+            echo "$line is offline" #if file is offline adds "OFFLINE" to the file
             mv "$line.webm" "OFFLINE - $line.webm"
         fi
     done < $logfile
     echo "checking finished"
 
 }
-
-
-main(){
+menu_main(){
     echo "1) Download"
     echo "2) Log new files"
     echo "3) Check"
@@ -74,5 +72,33 @@ main(){
         echo "Invalid option"
         main ;;
     esac
+}
+
+
+main(){
+    while getopts "d:l:c:" opt; do
+        case $opt in
+            d)
+                download 
+                ;;
+            l)
+                log 
+                ;;
+            c)
+                check 
+                ;;
+            m)
+                menu_main
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit 1
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                exit 1
+                ;;
+        esac
+    done
    }
 main
