@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Hello World"
 
 download(){
     read playlist_link
@@ -74,7 +75,6 @@ menu_main(){
     esac
 }
 
-
 main(){
     while getopts "d:l:c:" opt; do
         case $opt in
@@ -101,4 +101,5 @@ main(){
         esac
     done
    }
+
 main

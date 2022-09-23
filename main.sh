@@ -51,43 +51,35 @@ change_dir(){
         mkdir $newdir
     fi
 }
-check_all(){
-    #Parse/scrapes given playlist for all item if not present in download folder adds an entry to the registry and asks if download is allowed
-    #If yes downloads and add a row to registry
-    #If not add a row to registry and mark as "excluded"
-    #If after -c item from the registry are missing from online parse call -dm  ,
-    if [ -f registry.txt ]; then //check if registry exists
-        echo "Registry found"
-    else
-        echo "Registry not found"
-        touch registry.txt //create registry
+    
+log(){
+    #logs the names of downloaded files to a log file
+    echo "Enter the file name:"
+    read logfile
+    if [ -f $logfile ] ; then #check if registry exists
+        echo "Log found"
+    else 
+        echo "file not found creating file"
+        touch $logfile #create registry
     fi
-    ytdlp --flat-playlist "playlist_link">tempregistry.txt
-    for row in $(cat tempregistry.txt);
+    echo "logging started"
+    for filename in *.webm; #loop through all files with .webm extension
     do
-        if grep -q "$row" registry.txt;
+        if grep -Fxq "$filename" $logfile; #check if file is already in registry
         then
-            echo "Found $row all is good "
+            echo "$filename already logged" #if file is already in registry skip
         else
-            echo "Not found $row marking as offline_only"
-            $row >> missingregistry.txt
-        fi 
+            echo "logging $filename" 
+            echo "$filename" >> $logfile #if file is not in registry add to registry
+        fi
     done
-
+    echo "logging finished"
 }
 
 
 
 main(){
-    #main script, checks arguments and calls the appropriate function
-    #Base options :
-    #-d (download all)
-    #-dn(download new)
-    #-c (check all)
-    #-dc(ReDownload all and check all)
-    #-mm(mark_missing)
-    #-dir(change Download and check directory)
-    while getopts "d:dn:c:dc:mm:dir:" opt; do
+    while getopts "d:dn:l:dc:mm:dir:" opt; do
         case $opt in
             d)
                 download_all $OPTARG # done in test.sh
@@ -95,8 +87,8 @@ main(){
             dn)
                 download_new $OPTARG # partially done in test.sh, mix of download/log/check
                 ;;
-            c)
-                check_all $OPTARG #done in test.sh renamed to log
+            l)
+                log 
                 ;;
             dc)
                 download_all $OPTARG # partially done , must add a force redownload and force relog option
@@ -107,6 +99,17 @@ main(){
                 ;;
             dir)
                 change_dir $OPTARG
+                ;;
+            h)
+
+                echo "Usage: $0 [-d] [-dn] [-l] [-dc] [-mm] [-dir] [-h]"
+                echo "  -d  Download all"
+                echo "  -dn Download new"
+                echo "  -l log newly downloaded files"
+                echo "  -dc ReDownload all and check all"
+                echo "  -mm Mark missing"
+                echo "  -dir Change Download and check directory"
+                echo "  -h  Help"
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" >&2
