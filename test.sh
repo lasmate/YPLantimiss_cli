@@ -1,14 +1,19 @@
 #!/bin/bash
-echo "Hello World"
 
 download(){
     read playlist_link
     yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  $playlist_link
 }
+
 log(){
     #logs the names of downloaded files to a log file
-    echo "Enter the file name:"
-    read logfile
+    if [$OPTARG != ""]; then
+        echo "Enter the file name:"
+        read logfile
+    else
+        echo "file name alredy provided"
+        logfile=$OPTARG
+    fi
     if [ -f $logfile ] ; then #check if registry exists
         echo "Log found"
     else 
@@ -16,23 +21,32 @@ log(){
         touch $logfile #create registry
     fi
     echo "logging started"
-    for filename in *.webm; #loop through all files with .webm extension
+    default_dir 
+    for filename in *.webm ; #loop through all files with .webm extension
     do
-        if grep -Fxq "$filename" $logfile; #check if file is already in registry
+        if grep -Fxq "$filename" ../$logfile; #check if file is already in registry
         then
             echo "$filename already logged" #if file is already in registry skip
         else
             echo "logging $filename" 
-            echo "$filename" >> $logfile #if file is not in registry add to registry
+            echo "$filename" >> ../$logfile #if file is not in registry add to registry
         fi
     done
+    cd ../
     echo "logging finished"
 }
+
 check(){
     #checks if logged files are still available online
     #if not adds "OFFLINE - " to the beginning of the file name
-    echo "Enter the logfile name:"
-    read logfile
+    if [$OPTARG != ""]; then #check if file name is provided  
+    #ok wait wtf it works but why, it should ask for a filename if none is provided from getopts but it does not 
+        echo "Enter the file name:"
+        read logfile
+    else
+        echo "file name alredy provided"
+        logfile=$OPTARG
+    fi
     if [ -f $logfile ] ; then #check if registry exists
         echo "Log found"
     else 
@@ -40,17 +54,34 @@ check(){
         exit 1
     fi
     echo "checking started"
-    while read -r  line; do #loop through all lines in registry
-        if yt-dlp --geo-bypass --break-on-existing --downloader aria2c --format "bv*+ba/b" $line; then #check if file is still available online
+    while read -r line; do #loop through all lines in registry
+        #only takes the code within brackets from the line and stores it in a variable
+        # exammple of single video link https://www.youtube.com/watch?v=CYkvfsnEKe0&
+        video_id=$(echo $line | grep -oP '(?<=\[).*(?=\])')
+        FineLine= "$video_id"
+        echo $FineLine
+        if yt-dlp --geo-bypass --break-on-existing https://www.youtube.com/watch?v=$video_id ; #check if file is still available online
+        then
             echo "$line is online" #if file is online skip
         else
             echo "$line is offline" #if file is offline adds "OFFLINE" to the file
-            mv "$line.webm" "OFFLINE - $line.webm"
+            mv "$line" "OFFLINE - $line"
         fi
     done < $logfile
     echo "checking finished"
-
 }
+
+default_dir(){
+    if [ -d DLD ]; then
+        echo "Directory found"
+    else
+        echo "Directory not found"
+        mkdir DLD
+    fi
+    cd DLD
+    echo "Directory changed"
+}
+
 menu_main(){
     echo "1) Download"
     echo "2) Log new files"
@@ -62,7 +93,8 @@ menu_main(){
     1)
         download ;;
     2)
-        log ;;
+        log  
+        ;;
     3)
         check ;;
     4)
@@ -75,31 +107,28 @@ menu_main(){
     esac
 }
 
-main(){
-    while getopts "d:l:c:" opt; do
-        case $opt in
-            d)
-                download 
-                ;;
-            l)
-                log 
-                ;;
-            c)
-                check 
-                ;;
-            m)
-                menu_main
-                ;;
-            \?)
-                echo "Invalid option: -$OPTARG" >&2
-                exit 1
-                ;;
-            :)
-                echo "Option -$OPTARG requires an argument." >&2
-                exit 1
-                ;;
-        esac
-    done
-   }
 
-main
+while getopts "d:l:c:m" opt; do
+    case $opt in
+        d)
+            download 
+            ;;
+        l)
+            log $OPTARG
+            ;;
+        c)
+            check $OPTARG
+            ;;
+        m)
+            menu_main
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
