@@ -108,27 +108,8 @@ menu_main(){
 }
 
 
-while getopts "d:l:c:m" opt; do
-    case $opt in
-        d)
-            download 
-            ;;
-        l)
-            log $OPTARG
-            ;;
-        c)
-            check $OPTARG
-            ;;
-        m)
-            menu_main
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            exit 1
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument." >&2
-            exit 1
-            ;;
-    esac
-done
+main(){
+    menu_main
+}
+
+main
