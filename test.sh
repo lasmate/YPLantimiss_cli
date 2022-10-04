@@ -71,16 +71,7 @@ check(){
     echo "checking finished"
 }
 
-default_dir(){
-    if [ -d DLD ]; then
-        echo "Directory found"
-    else
-        echo "Directory not found"
-        mkdir DLD
-    fi
-    cd DLD
-    echo "Directory changed"
-}
+
 
 menu_main(){
     echo "1) Download"

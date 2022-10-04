@@ -7,13 +7,9 @@ Defaultdir="D:\VIDEO\YTarchive"
 
 
 download(){
-    if [GETOPTS != ""]; then
-        echo "playlist link alredy provided"
-        playlist_link=$OPTARG
-    else
-        echo "Enter the playlist link:"
-        read playlist_link
-    fi
+
+    echo "Enter the playlist link:"
+    read playlist_link
     yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  $playlist_link
 }
 
@@ -42,24 +38,20 @@ mark_missing(){
     done
     
 }
-change_dir(){
-    #Dire arg given next to it to set the diff directory and then launch -c to check the state of the dirt and possible fils already being here 
-    echo "State new directory"
-    read -p "Enter new directory: " newdir
-    if [ -d "$newdir" ]; then
-        echo "Directory exists"
-        Defaultdir=$newdir
+default_dir(){
+    if [ -d DLD ]; then
+        echo "Directory found"
     else
-        echo "Directory does not exist"
-        Defaultdir=$newdir
-        mkdir $newdir
+        echo "Directory not found"
+        mkdir DLD
     fi
+    cd DLD
+    echo "Directory changed"
 }
     
 log(){
     #logs the names of downloaded files to a log file
-    echo "Enter the file name:"
-    read logfile
+    logfile=$OPTARG
     if [ -f $logfile ] ; then #check if registry exists
         echo "Log found"
     else 
@@ -67,30 +59,25 @@ log(){
         touch $logfile #create registry
     fi
     echo "logging started"
-    for filename in *.webm; #loop through all files with .webm extension
+    default_dir
+    for filename in *.webm ; #loop through all files with .webm extension 
     do
-        if grep -Fxq "$filename" $logfile; #check if file is already in registry
+        if grep -Fxq "$filename" ../$logfile; #check if file is already in registry
         then
             echo "$filename already logged" #if file is already in registry skip
         else
             echo "logging $filename" 
-            echo "$filename" >> $logfile #if file is not in registry add to registry
+            echo "$filename" >> ../$logfile #if file is not in registry add to registry
         fi
     done
+    cd ../
     echo "logging finished"
 }
 
 check(){
     #checks if logged files are still available online
     #if not adds "OFFLINE - " to the beginning of the file name
-    if [$OPTARG != ""]; then #check if file name is provided  
-    #ok wait wtf it works but why, it should ask for a filename if none is provided from getopts but it does not 
-        echo "Enter the file name:"
-        read logfile
-    else
-        echo "file name alredy provided"
-        logfile=$OPTARG
-    fi
+    logfile=$OPTARG
     if [ -f $logfile ] ; then #check if registry exists
         echo "Log found"
     else 
@@ -124,7 +111,7 @@ while getopts "d:dn:l:dc:c:dir:h" opt; do
             download_new $OPTARG # partially done in test.sh, mix of download/log/check
             ;;
         l)
-            log 
+            log $OPTARG
             ;;
         dc)
             download_all $OPTARG # partially done , must add a force redownload and force relog option
