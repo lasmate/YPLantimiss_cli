@@ -74,11 +74,11 @@ check(){
 
 
 menu_main(){
-    echo "1) Download"
-    echo "2) Log new files"
-    echo "3) Check"
+    echo "1) Download" #done
+    echo "2) Log new files" #done
+    echo "3) Check" #done
     echo "4) #Change Directory"
-    echo "5) #Exit"
+    echo "5) Exit"
     read -n 1 ans1
     case $ans1 in
     1)

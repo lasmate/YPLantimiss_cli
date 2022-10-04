@@ -29,15 +29,7 @@ download_new(){ #need to revactor it to use the same function as download
         fi
     done
 }
-mark_missing(){
-    #change name of said  files to have "offline_only" at the end of them and had a red colored cell on registry
-    for row in $(cat missingregistry.txt);
-    do 
-        sed 's/# $row/$row offline_only/' registry.txt
-        
-    done
-    
-}
+
 default_dir(){
     if [ -d DLD ]; then
         echo "Directory found"
@@ -102,7 +94,7 @@ check(){
     echo "checking finished"
 }
 
-while getopts "d:dn:l:dc:c:dir:h" opt; do
+while getopts "d:dn:l:dc:c:h" opt; do
     case $opt in
         d)
             download_all $OPTARG # done in test.sh
@@ -120,8 +112,6 @@ while getopts "d:dn:l:dc:c:dir:h" opt; do
         c)
             check $OPTARG #done in test.sh renamed check
             ;;
-        dir)
-            change_dir $OPTARG
             ;;
         h)
 
@@ -131,7 +121,6 @@ while getopts "d:dn:l:dc:c:dir:h" opt; do
             echo "  -l log newly downloaded files"
             echo "  -dl ReDownload all and check all"
             echo "  -c check all and mark missing"
-            echo "  -dir Change Download and check directory"
             echo "  -h  Help"
             ;;
         \?)
