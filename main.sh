@@ -25,8 +25,9 @@ log(){
     for filename in *.webm ; #loop through all files with .webm extension 
     do
         if grep -Fxq "$filename" ../$logfile; #check if file is already in registry
+                                            # problem when using grep -Fxq "$filename" ../$logfile afterusinf -D(download new) option
         then
-            echo "$filename already logged" #if file is already in registry skip
+            echo "$filename already logged" #if file is already in registry skip 
         else
             echo "logging $filename" 
             echo "$filename" >> ../$logfile #if file is not in registry add to registry
@@ -104,9 +105,7 @@ download_new(){
     log
 }
 
-
-
-while getopts "d:D:l:c:h" opt; do
+while getopts "d:Dl:c:h" opt; do
     case $opt in
         d)
             echo "1)simple download"
