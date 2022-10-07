@@ -18,8 +18,10 @@ YPLantimiss_cli.sh/main.sh [options] [arguments]
     options are :
     -h, --help
     -v, --version
+    -d, --download
+    -D, --download new files and logs them
     -l, --log new files
-    -d, --download new files 
+    -c, --checks for unavailable files
     -m, --non getops menu
 
 

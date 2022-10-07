@@ -1,35 +1,5 @@
-#way too complicated, refactor all, make it more readable
-echo "echo"
-
 #!/bin/bash
-
-Defaultdir="D:\VIDEO\YTarchive"
-
-
-download(){
-
-    echo "Enter the playlist link:"
-    read playlist_link
-    yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  $playlist_link
-}
-
-download_new(){ #need to revactor it to use the same function as download
-    #Checks if item is already downloaded
-    #If not downloads and add entry to registry 
-    ytdlp --flat-playlist "playlist_link">tempregistry.txt
-    for row in $(cat registry.txt);
-    do
-        if grep -q "$row" tempregistry.txt;
-        then
-            echo "Found $row keeping it "
-        else
-            echo "Not found $row downloading it"
-            yt-dlp --geo-bypass  --download-archive registry.txt --downloader aria2c -path D/VIDEO/YTarchive/$3 --format "bv*+ba/b"  $row 
-            $row >> registry.txt
-        fi
-    done
-}
-
+# would be nite to implement a laylist cache fonction/ add the plylist link at he top of the 
 default_dir(){
     if [ -d DLD ]; then
         echo "Directory found"
@@ -40,7 +10,7 @@ default_dir(){
     cd DLD
     echo "Directory changed"
 }
-    
+
 log(){
     #logs the names of downloaded files to a log file
     logfile=$OPTARG
@@ -73,7 +43,7 @@ check(){
     if [ -f $logfile ] ; then #check if registry exists
         echo "Log found"
     else 
-        echo "no file found"
+        echo "file not found exiting"
         exit 1
     fi
     echo "checking started"
@@ -83,9 +53,10 @@ check(){
         video_id=$(echo $line | grep -oP '(?<=\[).*(?=\])')
         FineLine= "$video_id"
         echo $FineLine
-        if yt-dlp --geo-bypass --break-on-existing https://www.youtube.com/watch?v=$video_id ; #check if file is still available online
+        if [yt-dlp --geo-bypass --break-on-existing https://www.youtube.com/watch?v=$video_id == 0 ] ; #check if file is still available online
         then
             echo "$line is online" #if file is online skip
+            mv "$line" "ONLINE - $line"
         else
             echo "$line is offline" #if file is offline adds "OFFLINE" to the file
             mv "$line" "OFFLINE - $line"
@@ -94,32 +65,73 @@ check(){
     echo "checking finished"
 }
 
-while getopts "d:dn:l:dc:c:h" opt; do
+download(){
+    if [ $autolog == 2 ]; then
+        echo "Enter the file name:"
+        read logfile
+        echo "Enter the playlist link:"
+        read playlist_link
+        printf $playlist_link >> $logfile
+    else
+        echo "Enter the playlist link:"
+        read playlist_link
+    fi
+    echo "downloading started"
+    default_dir
+    yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  $playlist_link
+    cd ../
+}
+
+download_new(){ 
+    #Checks if item is already downloaded ,If not downloads and add entry to registry 
+    echo "Enter logfile name:"
+    read logfile
+    if [ -f $logfile ] ; then #check if registry exists
+        echo "Log found"
+    else 
+        echo "file not found exiting"
+        exit 1
+    fi
+    echo "checking $logfile for youtube link"
+    playlist_link=$(cat $logfile | head -n 1)
+    #add a valid string test to playlist_link
+
+    echo "playlist link found"
+    default_dir
+    echo "downloading started"
+    yt-dlp --geo-bypass --yes-playlist --break-on-existing --break-per-input --downloader aria2c --format "bv*+ba/b"  $playlist_link
+    cd ../
+    log
+}
+
+
+
+while getopts "d:D:l:c:h" opt; do
     case $opt in
         d)
-            download_all $OPTARG # done in test.sh
+            echo "1)simple download"
+            echo "2)logged download"
+            read autolog
+            download $OPTARG # done in test.sh
             ;;
-        dn)
-            download_new $OPTARG # partially done in test.sh, mix of download/log/check
+        D)
+            download_new # nearly done in main.sh lacks some guardrails
             ;;
         l)
             log $OPTARG
             ;;
-        dc)
-            download_all $OPTARG # partially done , must add a force redownload and force relog option
-            log $OPTARG
-            ;;
+        #dc)
+            #download_all $OPTARG # partially done , must add a force redownload and force relog option
+            #;;
         c)
             check $OPTARG #done in test.sh renamed check
             ;;
-            ;;
         h)
-
             echo "Usage: $0 [-d] [-dn] [-l] [-dc] [-c] [-dir] [-h]"
             echo "  -d  Download all"
-            echo "  -dn Download new"
+            echo "  -D Download new"
             echo "  -l log newly downloaded files"
-            echo "  -dl ReDownload all and check all"
+            #echo "  -dl ReDownload all and check all"
             echo "  -c check all and mark missing"
             echo "  -h  Help"
             ;;
@@ -128,5 +140,4 @@ while getopts "d:dn:l:dc:c:h" opt; do
             echo "Usage: $0 -d(download all) -dn(download new) -c(check) -dc(redownload all and check all)  -dir(change directory)"
             ;;
     esac
-done 
-#ytdlp 
+done

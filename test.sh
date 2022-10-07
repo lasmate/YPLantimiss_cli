@@ -97,10 +97,12 @@ menu_main(){
         main ;;
     esac
 }
-
-
 main(){
-    menu_main
+    echo "Enter logfile name:"
+    read logfile
+    playlist_link=$(cat $logfile | head -n 1)
+
+    echo $playlist_link
 }
 
 main
